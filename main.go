@@ -2,6 +2,6 @@ package main
 
 func main() {
 	cmd := getCommands()
-	startRepl(&config{cmd})
+	startRepl(&config{ commands: cmd})
 }
    

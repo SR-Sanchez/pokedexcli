@@ -18,3 +18,33 @@ func commandHelp(cfg *config) error {
 	}
 	return nil
 }
+
+func commandMap(cfg *config) error {
+	baseUrl := "https://pokeapi.co/api/v2/location-area"
+	url := cfg.next
+	if url == "" {
+		url = baseUrl
+	}
+	mapData := makePokedexRequest(cfg, url)
+
+	for _, location := range mapData.Results {
+		fmt.Println(location.Name)
+	}
+	
+	return nil
+}
+
+func commandMapb(cfg *config) error {
+	if cfg.previous == ""{
+		fmt.Println("you're on the first page")
+		return nil
+	}
+
+	mapData := makePokedexRequest(cfg, cfg.previous)
+
+	for _, location := range mapData.Results {
+		fmt.Println(location.Name)
+	}
+
+	return nil
+}
