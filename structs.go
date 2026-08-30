@@ -10,6 +10,7 @@ type config struct {
 	commands      map[string]cliCommand
 	next          string
 	previous      string
+	pokeClient    Client
 }
 
 type Location struct {

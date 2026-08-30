@@ -25,7 +25,10 @@ func commandMap(cfg *config) error {
 	if url == "" {
 		url = baseUrl
 	}
-	mapData := makePokedexRequest(cfg, url)
+	mapData, err := cfg.pokeClient.makePokedexRequest(cfg, url)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	for _, location := range mapData.Results {
 		fmt.Println(location.Name)
@@ -40,7 +43,10 @@ func commandMapb(cfg *config) error {
 		return nil
 	}
 
-	mapData := makePokedexRequest(cfg, cfg.previous)
+	mapData, err := cfg.pokeClient.makePokedexRequest(cfg, cfg.previous)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	for _, location := range mapData.Results {
 		fmt.Println(location.Name)
