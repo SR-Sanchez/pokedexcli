@@ -22,12 +22,17 @@ func getCommands() map[string]cliCommand {
 		"map": {
 			name:        "map",
 			description: "displays the names of 20 location areas in the Pokemon world",
-			callback: commandMap,
+			callback:    commandMap,
 		},
 		"mapb": {
 			name:        "mapb",
 			description: "displays the names of 20 previous location areas in the Pokemon world",
-			callback: commandMapb,
+			callback:    commandMapb,
+		},
+		"explore": {
+			name:        "explore",
+			description: "After using the `map` command to find a location area, you can see a list of all the Pokémon located there",
+			callback:    commandExplore,
 		},
 	}
 }
@@ -54,7 +59,6 @@ func startRepl(cfg *config) {
 	// Create a Scanner that reads input from standard input
 	// (the terminal/console).
 	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Err() //Not sure what this does, but the IDE showed me that I should call it to avoid a nil pointer error?
 	for {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
@@ -62,6 +66,7 @@ func startRepl(cfg *config) {
 		if len(words) == 0 {
 			continue
 		}
+		cfg.words = words
 		if cmd, ok := cfg.commands[words[0]]; ok {
 			err := cmd.callback(cfg)
 			if err != nil {

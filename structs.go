@@ -13,5 +13,6 @@ type config struct {
 	next          string
 	previous      string
 	pokeClient    pokedexClient.Client
+	words         []string
 }
 

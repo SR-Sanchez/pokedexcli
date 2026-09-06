@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"errors"
 )
 
 func commandExit(cfg *config) error {
@@ -58,5 +59,26 @@ func commandMapb(cfg *config) error {
 		fmt.Println(location.Name)
 	}
 
+	return nil
+}
+
+func commandExplore(cfg *config) error {
+	baseUrl := "https://pokeapi.co/api/v2/location-area"
+	if len(cfg.words) < 2 {
+		return errors.New("You didn't pass the location")
+	}
+
+	locationUrl := baseUrl + "/" + cfg.words[1]
+
+	areaData, err := cfg.pokeClient.ListPokemonsInArea(locationUrl)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Exploring " + areaData.Name + "...")
+	for _, pokemonEncounter := range areaData.PokemonEncounters {
+		fmt.Println("- " + pokemonEncounter.Pokemon.Name)
+	}	
+	
 	return nil
 }

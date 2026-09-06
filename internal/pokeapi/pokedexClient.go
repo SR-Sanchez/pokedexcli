@@ -6,23 +6,12 @@ import (
 	"time"
 	"github.com/SR-Sanchez/pokedexcli/internal/pokecache"
 	"io"
+	"errors"
 )
 
 type Client struct {
 	httpClient    http.Client
 	cache         *pokecache.Cache
-}
-
-type Location struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
-}
-
-type MapResult struct {
-	Count    int        `json:"count"`
-	Next     string     `json:"next"`
-	Previous string     `json:"previous"`
-	Results  []Location `json:"results"`
 }
 
 func NewClient(timeOutInSeconds int) Client {
@@ -77,4 +66,44 @@ func (c *Client) MakePokedexRequest(url string) (MapResult, error) {
 	}
 
 	return mapData, nil
+}
+
+func (c *Client) ListPokemonsInArea(location string) (PokemonAreaResult, error) {
+	var areaData PokemonAreaResult
+
+	val, ok := c.cache.Get(location)
+	if ok {
+		if err := json.Unmarshal(val, &areaData); err != nil {
+			return PokemonAreaResult{}, err
+		}
+		return areaData, nil
+	}
+
+	req, err := http.NewRequest("GET", location, nil)
+	if err != nil {
+		return PokemonAreaResult{}, err
+	}
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return PokemonAreaResult{}, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == 404 {
+		return PokemonAreaResult{}, errors.New("No results found for this area")
+	}
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return PokemonAreaResult{}, err
+	}
+
+	c.cache.Add(location, data)
+
+	if err := json.Unmarshal(data, &areaData);  err != nil {
+		return PokemonAreaResult{}, err
+	}
+
+	return areaData, nil
 }
