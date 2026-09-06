@@ -1,7 +1,11 @@
 package main
 
+import (
+	"github.com/SR-Sanchez/pokedexcli/internal/pokeapi"
+)
+
 func main() {
-	pokeClient := newClient(10)
+	pokeClient := pokedexClient.NewClient(10)
 	cmd := getCommands()
 	startRepl(&config{ 
 		commands: cmd,

@@ -1,5 +1,7 @@
 package main
 
+import "github.com/SR-Sanchez/pokedexcli/internal/pokeapi"
+
 type cliCommand struct {
 	name        string
 	description string
@@ -10,17 +12,6 @@ type config struct {
 	commands      map[string]cliCommand
 	next          string
 	previous      string
-	pokeClient    Client
+	pokeClient    pokedexClient.Client
 }
 
-type Location struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
-}
-
-type MapResult struct {
-	Count    int        `json:"count"`
-	Next     string     `json:"next"`
-	Previous string     `json:"previous"`
-	Results  []Location `json:"results"`
-}
