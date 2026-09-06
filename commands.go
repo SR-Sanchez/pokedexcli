@@ -63,12 +63,10 @@ func commandMapb(cfg *config) error {
 }
 
 func commandExplore(cfg *config) error {
-	baseUrl := "https://pokeapi.co/api/v2/location-area"
-	if len(cfg.words) < 2 {
-		return errors.New("You didn't pass the location")
+	locationUrl, err := GetUrl(cfg, "explore")
+	if err != nil {
+		return err
 	}
-
-	locationUrl := baseUrl + "/" + cfg.words[1]
 
 	areaData, err := cfg.pokeClient.ListPokemonsInArea(locationUrl)
 	if err != nil {
@@ -81,4 +79,38 @@ func commandExplore(cfg *config) error {
 	}	
 	
 	return nil
+}
+
+func commandCatch(cfg *config) error {
+	/* pokemonUrl, err := GetUrl(cfg, "catch")
+	if err != nil {
+		return err
+	}
+ */
+ return nil
+}
+
+//helpers
+func GetUrl(cfg *config, action string) (string, error) {
+	baseUrl := "https://pokeapi.co/api/v2/"
+	var route string
+	var error string
+	switch action {
+		case "explore":
+			route = "location-area/"
+			error = "You didn't pass the location"
+		case "catch":
+		  route = "pokemon/"
+		  error = "You didn't pass the pokemon name"
+		default: 
+		  route  = ""
+			error = "Unknown action"
+			return route, errors.New(error)
+	}
+	if len(cfg.words) < 2 {
+		return route, errors.New(error)
+	}
+
+	searchUrl := baseUrl + route + cfg.words[1]
+  return searchUrl, nil
 }

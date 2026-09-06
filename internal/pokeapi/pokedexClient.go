@@ -26,8 +26,44 @@ func NewClient(timeOutInSeconds int) Client {
 	}
 }
 
+func fetchAndUnmarshal[T any](url string, c *Client) (T, error) {
+	var result T
+
+	val, ok := c.cache.Get(url)
+	if ok {
+		if err := json.Unmarshal(val, &result); err != nil {
+			return result, err
+		}
+		return result, nil
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return result, err
+	}
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return result, nil
+	}
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return result, err
+	}
+
+	c.cache.Add(url, data)
+
+	if err := json.Unmarshal(data, &result); err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
 func (c *Client) MakePokedexRequest(url string) (MapResult, error) {
-	var mapData MapResult
+	/* var mapData MapResult
 
 	// check cache first - avoid a network call if we already have this URL
 	val, ok := c.cache.Get(url)
@@ -65,7 +101,8 @@ func (c *Client) MakePokedexRequest(url string) (MapResult, error) {
 		return MapResult{}, err
 	}
 
-	return mapData, nil
+	return mapData, nil */
+	return fetchAndUnmarshal[MapResult] (url, c)
 }
 
 func (c *Client) ListPokemonsInArea(location string) (PokemonAreaResult, error) {

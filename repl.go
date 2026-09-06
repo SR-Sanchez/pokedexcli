@@ -59,6 +59,7 @@ func startRepl(cfg *config) {
 	// Create a Scanner that reads input from standard input
 	// (the terminal/console).
 	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Err()
 	for {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
