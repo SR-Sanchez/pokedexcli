@@ -7,6 +7,7 @@ import (
 	"github.com/SR-Sanchez/pokedexcli/internal/pokecache"
 	"io"
 	"errors"
+	"fmt"
 )
 
 type Client struct {
@@ -28,119 +29,63 @@ func NewClient(timeOutInSeconds int) Client {
 
 func fetchAndUnmarshal[T any](url string, c *Client) (T, error) {
 	var result T
-
-	val, ok := c.cache.Get(url)
-	if ok {
+	
+	// 1. Check cache first
+	if val, ok := c.cache.Get(url); ok {
 		if err := json.Unmarshal(val, &result); err != nil {
 			return result, err
 		}
 		return result, nil
 	}
-
+	
+	// 2. Make HTTP request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return result, err
 	}
-
+	
 	res, err := c.httpClient.Do(req)
 	if err != nil {
-		return result, nil
+		return result, err
 	}
 	defer res.Body.Close()
-
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return result, err
+	
+	// 3. Handle non-200 HTTP statuses
+	if res.StatusCode == http.StatusNotFound {
+		return result, errors.New("resource not found")
 	}
-
-	c.cache.Add(url, data)
-
-	if err := json.Unmarshal(data, &result); err != nil {
-		return result, err
+	if res.StatusCode > 299 {
+		return result, fmt.Errorf("unexpected status code: %d", res.StatusCode)
 	}
-
-	return result, nil
-}
-
-func (c *Client) MakePokedexRequest(url string) (MapResult, error) {
-	/* var mapData MapResult
-
-	// check cache first - avoid a network call if we already have this URL
-	val, ok := c.cache.Get(url)
-	if ok {
-		if err := json.Unmarshal(val, &mapData); err != nil {
-			return MapResult{}, err
-		}
-		return mapData, nil // cache hit - skip the HTTP request entirely
-	}
-
-	// cache miss - make the real HTTP request
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return MapResult{}, err
-	}
-
-	res, err := c.httpClient.Do(req)
-	if err != nil {
-		return MapResult{}, err
-	}
-	defer res.Body.Close() // release the connection once we're done reading
-
+	
+	// 4. Read response body
 	// read the entire response body into memory as raw bytes
 	// (res.Body is a stream and can only be read once)
 	data, err := io.ReadAll(res.Body)
 	if err != nil {
-		return MapResult{}, err
+		return result, err
 	}
-
-	// store the raw bytes in the cache for future requests to this URL
+	
+	// 5. Save raw bytes to cache
 	c.cache.Add(url, data)
-
+	
+	// 6. Unmarshal JSON into generic result type T
 	// unmarshal from our in-memory bytes, not res.Body (already drained)
-	if err := json.Unmarshal(data, &mapData); err != nil {
-		return MapResult{}, err
+	if err := json.Unmarshal(data, &result); err != nil {
+		return result, err
 	}
+	
+	return result, nil
+}
 
-	return mapData, nil */
+func (c *Client) MakePokedexRequest(url string) (MapResult, error) {
 	return fetchAndUnmarshal[MapResult] (url, c)
 }
 
 func (c *Client) ListPokemonsInArea(location string) (PokemonAreaResult, error) {
-	var areaData PokemonAreaResult
+	return fetchAndUnmarshal[PokemonAreaResult] (location, c)
+}
 
-	val, ok := c.cache.Get(location)
-	if ok {
-		if err := json.Unmarshal(val, &areaData); err != nil {
-			return PokemonAreaResult{}, err
-		}
-		return areaData, nil
-	}
-
-	req, err := http.NewRequest("GET", location, nil)
-	if err != nil {
-		return PokemonAreaResult{}, err
-	}
-
-	res, err := c.httpClient.Do(req)
-	if err != nil {
-		return PokemonAreaResult{}, err
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode == 404 {
-		return PokemonAreaResult{}, errors.New("No results found for this area")
-	}
-
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return PokemonAreaResult{}, err
-	}
-
-	c.cache.Add(location, data)
-
-	if err := json.Unmarshal(data, &areaData);  err != nil {
-		return PokemonAreaResult{}, err
-	}
-
-	return areaData, nil
+func (c *Client) CatchPokemon(pokemon string) (PokemonInfo, error) {
+	return fetchAndUnmarshal[PokemonInfo] (pokemon, c)
 }

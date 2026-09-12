@@ -1,6 +1,8 @@
 package main
 
-import "github.com/SR-Sanchez/pokedexcli/internal/pokeapi"
+import (
+	"github.com/SR-Sanchez/pokedexcli/internal/pokeapi"
+)
 
 type cliCommand struct {
 	name        string
@@ -14,5 +16,6 @@ type config struct {
 	previous      string
 	pokeClient    pokedexClient.Client
 	words         []string
+	pokemon       map[string]pokedexClient.PokemonInfo
 }
 

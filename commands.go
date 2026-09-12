@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"errors"
+	"time"
+	"math/rand"
 )
 
 func commandExit(cfg *config) error {
@@ -82,12 +84,26 @@ func commandExplore(cfg *config) error {
 }
 
 func commandCatch(cfg *config) error {
-	/* pokemonUrl, err := GetUrl(cfg, "catch")
+	pokemonUlr, err := GetUrl(cfg, "catch")
 	if err != nil {
 		return err
 	}
- */
- return nil
+	pokemonData, err := cfg.pokeClient.CatchPokemon(pokemonUlr); 
+	if err != nil {
+		return err
+	}
+
+	catchingChance := 1.0 - float64(pokemonData.BaseExperience)/300.0
+	
+	fmt.Println("Throwing a Pokeball at " + pokemonData.Name + "...")
+	time.Sleep(time.Second * 3)
+	if rand.Float64() < catchingChance {
+		cfg.pokemon[pokemonData.Name] = pokemonData
+		fmt.Printf("%s was caught!\n", pokemonData.Name)
+		return nil
+	}
+	fmt.Printf("%v got away...\n", pokemonData.Name)
+	return nil
 }
 
 //helpers
