@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"os"
 	"errors"
-	"time"
+	"fmt"
 	"math/rand"
+	"os"
+	"time"
 )
 
 func commandExit(cfg *config) error {
@@ -84,11 +84,11 @@ func commandExplore(cfg *config) error {
 }
 
 func commandCatch(cfg *config) error {
-	pokemonUlr, err := GetUrl(cfg, "catch")
+	pokemonUrl, err := GetUrl(cfg, "catch")
 	if err != nil {
 		return err
 	}
-	pokemonData, err := cfg.pokeClient.CatchPokemon(pokemonUlr); 
+	pokemonData, err := cfg.pokeClient.CatchPokemon(pokemonUrl); 
 	if err != nil {
 		return err
 	}
@@ -103,6 +103,32 @@ func commandCatch(cfg *config) error {
 		return nil
 	}
 	fmt.Printf("%v got away...\n", pokemonData.Name)
+	return nil
+}
+
+func commandInspect(cfg *config) error {
+	if len(cfg.words) < 2 {
+		fmt.Println("No pokemon name was passed")
+		return nil
+	}
+	pokemonName := cfg.words[1]
+	pokemon, ok := cfg.pokemon[pokemonName]
+  if !ok {
+		fmt.Println("you have not caught that pokemon")
+		return nil
+	}
+	fmt.Printf("Name: %s\n",  pokemon.Name)
+	fmt.Printf("Height: %v\n",  pokemon.Height)
+	fmt.Printf("Weight: %v\n",  pokemon.Weight)
+	fmt.Println("Stats:")
+	for _, stat := range pokemon.Stats {
+		fmt.Printf("%s: %v\n", stat.Stat.Name, stat.BaseStat )
+	}
+	fmt.Println("Types:")
+	for _, pokemonType := range pokemon.Types {
+		fmt.Printf("-%s\n", pokemonType.Type.Name)
+	}
+	
 	return nil
 }
 
