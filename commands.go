@@ -99,7 +99,7 @@ func commandCatch(cfg *config) error {
 	time.Sleep(time.Second * 3)
 	if rand.Float64() < catchingChance {
 		cfg.pokemon[pokemonData.Name] = pokemonData
-		fmt.Printf("%s was caught!\n", pokemonData.Name)
+		fmt.Printf("%s was caught!\nYou may now inspect it with the inspect command.\n", pokemonData.Name)
 		return nil
 	}
 	fmt.Printf("%v got away...\n", pokemonData.Name)
@@ -129,6 +129,18 @@ func commandInspect(cfg *config) error {
 		fmt.Printf("-%s\n", pokemonType.Type.Name)
 	}
 	
+	return nil
+}
+
+func commandPokedex(cfg *config) error {
+	if len(cfg.pokemon) == 0 {
+		fmt.Println("You haven't catch any pokemon yet")
+		return nil
+	}
+	fmt.Println("Your pokedex:")
+	for _, value := range cfg.pokemon{
+		fmt.Printf("- %s\n", value.Name)
+	}
 	return nil
 }
 
